@@ -1,0 +1,48 @@
+syntax = "proto3";
+package nonna;
+
+option go_package = "pkg/nonna";
+
+enum Status {
+    Unknown = 0;
+    Success = 1;
+    Failed = 2;
+}
+
+// Queue-Proxy -> Nonna: HttpMessage
+message PushRequest {
+    uint32 ID = 1;
+    string SourceIP = 2;
+    string Domain = 3;
+    string URI = 4;
+    string Method = 5;
+
+    message HeaderSchema {
+        string field = 1;
+        string value = 2;
+    }
+    repeated HeaderSchema Headers = 6;
+}
+
+message PushResponse {
+    Status SymbolizeResponse = 1;
+}
+
+// Queue-Proxy -> Nonna: PopIndicate
+message PopRequest {
+    Status SymbolizeRequest = 1;
+}
+
+message PopResponse {
+    uint32 ID = 1;
+    string SourceIP = 2;
+    string Domain = 3;
+    string URI = 4;
+    string Method = 5;
+
+    message HeaderSchema {
+        string field = 1;
+        string value = 2;
+    }
+    repeated HeaderSchema Headers = 6;
+}
