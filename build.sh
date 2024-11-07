@@ -138,6 +138,9 @@ elif [ $OPTION == "push" ]; then
     pushDockerImage $2
     deployNewVersion
     sleep 1
+elif [ $OPTION == "log" ]; then
+    deployNewVersion
+    logPod
 # elif [ $OPTION == "ko" ]; then
 #     image=$(docker images | grep ko.local | grep $IMAGE | awk '{print $3}')
 #     docker rmi -f $image
@@ -146,9 +149,6 @@ elif [ $OPTION == "push" ]; then
 #     dockerBuild
 # elif [ $OPTION == "dep" ]; then
 #     convertImage
-#     deployNewVersion
-#     logPod
-# elif [ $OPTION == "log" ]; then
 #     deployNewVersion
 #     logPod
 # elif [ $OPTION == "debug" ]; then
