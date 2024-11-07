@@ -20,6 +20,7 @@ type ExtraQueue struct {
 	MsgIDLock       sync.Mutex
 	MsgIDCount      uint32
 	sortLock        sync.Mutex
+	queueLock       sync.Mutex
 }
 
 func NewExtraQueue() *ExtraQueue {
@@ -34,6 +35,7 @@ func NewExtraQueue() *ExtraQueue {
 		MsgIDLock:       sync.Mutex{},
 		MsgIDCount:      0,
 		sortLock:        sync.Mutex{},
+		queueLock:       sync.Mutex{},
 	}
 	newExtraQueue.pushBridge = hashi.NewHashi(
 		"PushBridge",
@@ -54,19 +56,8 @@ func NewExtraQueue() *ExtraQueue {
 		newExtraQueue.PopResponseAdapter,
 	)
 
-	// go newExtraQueue.controller()
-
 	return newExtraQueue
 }
-
-// func (q *ExtraQueue) controller() {
-// 	for {
-// 		<-q.Next
-// 		if len(q.Queue) > 0 {
-// 			q.Pop()
-// 		}
-// 	}
-// }
 
 func (q *ExtraQueue) PushResponseAdapter(params ...interface{}) (interface{}, error) {
 	pushRequest := params[0].(*PushRequest)
@@ -75,24 +66,28 @@ func (q *ExtraQueue) PushResponseAdapter(params ...interface{}) (interface{}, er
 }
 
 func (q *ExtraQueue) PopResponseAdapter(params ...interface{}) (interface{}, error) {
-	bonalib.Info("PopResponseAdapter")
-	_ = params[0].(*PopRequest)
-	bonalib.Info("PopResponseAdapter 2")
+	// _ = params[0].(*PopRequest)
 	popPacket := q.Pop()
 	return packet2PopResponse(popPacket), nil
 }
 
 func (q *ExtraQueue) Push(pushPacket *PushRequest) {
+	q.queueLock.Lock()
 	q.sort(pushRequest2Packet(pushPacket))
+	q.queueLock.Unlock()
+	q.Next <- true
 }
 
 func (q *ExtraQueue) Pop() *Packet {
-	bonalib.Info("Pop")
 	q.popLock.Lock()
 	defer q.popLock.Unlock()
 
+	<-q.Next // hangout until len of Queue > 0
+	q.queueLock.Lock()
 	popPacket := q.Queue[len(q.Queue)-1]
 	q.Queue = q.Queue[:len(q.Queue)-1]
+	q.queueLock.Unlock()
+
 	return popPacket
 }
 
@@ -101,20 +96,8 @@ func (q *ExtraQueue) sort(p *Packet) {
 	q.sortLock.Lock()
 	defer q.sortLock.Unlock()
 
-	position := -1
-	// for i, packet := range q.Queue {
-	// 	if p.Priority > packet.Priority {
-	// 		position = i
-	// 		continue
-	// 	}
-	// 	if p.Priority == packet.Priority {
-	// 		position = i - 1
-	// 		continue
-	// 	}
-	// 	if packet.Priority > p.Priority {
-	// 		break
-	// 	}
-	// }
-	position = len(q.Queue) - 1
-	q.Queue = append(q.Queue[:position+1], append([]*Packet{p}, q.Queue[position+1:]...)...)
+	// position := -1
+	// position = len(q.Queue) - 1
+	// q.Queue = append(q.Queue[:position+1], append([]*Packet{p}, q.Queue[position+1:]...)...)
+	q.Queue = append([]*Packet{p}, q.Queue...)
 }
