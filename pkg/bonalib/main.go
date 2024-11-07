@@ -3,7 +3,6 @@ package bonalib
 import (
 	"context"
 	"math/rand"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -148,7 +147,7 @@ func Logln(msg string, obj interface{}) {
 
 func Str2Int(str string) int {
 	num, err := strconv.Atoi(str)
-	if str == ""  {
+	if str == "" {
 		return 0
 	}
 	if err != nil {
@@ -202,11 +201,22 @@ func Cm2StringSlice(namespace string, configmapName string, data string) []strin
 }
 
 func Cm2Int(data string) int {
-	result, err := strconv.Atoi(os.Getenv(data))
+	// ret, err := strconv.Atoi(os.Getenv(data))
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	result, ok := stringConfigmap[data]
+	if !ok {
+		config, _ := rest.InClusterConfig()
+		clientset, _ := kubernetes.NewForConfig(config)
+		configMap, _ := clientset.CoreV1().ConfigMaps("knative-serving").Get(context.TODO(), "config-ikukantai", metav1.GetOptions{})
+		result = configMap.Data[data]
+	}
+	ret, err := strconv.Atoi(result)
 	if err != nil {
 		panic(err.Error())
 	}
-	return result
+	return ret
 }
 
 func Cm2String(data string) string {
