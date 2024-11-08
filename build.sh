@@ -42,6 +42,9 @@ dockerBuild() {
     
     logStage "Go build binary"
     CGO_ENABLED=0 go build -ldflags="-s -w" -o ./$IMAGE ./cmd/$IMAGE
+    if [ $? -ne "0" ]; then
+        exit 1
+    fi
 
     logStage "Compress binary"
     if [ $compress == "fast" ]; then
