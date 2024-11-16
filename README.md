@@ -19,6 +19,8 @@
 
 ## 2. Structure
 
+![](docs/images/nonna-structure.jpg)
+
 ## 3. Installation
 
 ## 4. Development
