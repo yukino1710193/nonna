@@ -48,9 +48,9 @@ dockerBuild() {
 
     logStage "Compress binary"
     if [ $compress == "fast" ]; then
-        upxx -1 $IMAGE
+        upx -1 $IMAGE
     elif [ $compress == "high" ]; then
-        upxx -9 $IMAGE
+        upx -9 $IMAGE
     fi
 
     logStage "Docker build image"

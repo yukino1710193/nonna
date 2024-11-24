@@ -2,7 +2,7 @@
 
 ### (Blizzard Nonna - Bão Tuyết Nonna - ブリザードのノンナ)
 
-[![release](https://img.shields.io/badge/nonna--v0.1-log?style=flat&label=release&color=darkgreen)]()
+[![release](https://img.shields.io/badge/nonna--v1.0-log?style=flat&label=release&color=darkgreen)]()
 [![LICENSE](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 [![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white&link=https%3A%2F%2Fkubernetes.io)](https://kubernetes.io/)
@@ -31,7 +31,76 @@ The name `nonna` is inspired by the character **Nonna** in the anime **Girls und
 
 ## 3. Installation
 
+### 3.1. Requirement
+
++ [ikukantai](https://github.com/bonavadeur/ikukantai?tab=readme-ov-file#3-installation) Fleet is deployed, version >= 2.1
++ [Go](https://go.dev/doc/install) is installed, version >= 1.22.4
++ [Docker]() is installed. `docker` command can be invoked without sudo
++ [upx](https://upx.github.io/) is installed, version >= 4.2.4
+
+### 3.2. Config `nonna` as image of queue-proxy
+
+Edit Custom Resource **Image**.**caching.internal.knative.dev/v1alpha1** and Configmap **config-deployment** in namespace **knative-serving** to change image for queue-proxy to `nonna`, see [replace-image.sh](hack/replace-image.sh)
+
+```bash
+$ chmod +x hack/replace-image.sh
+$ ./hack/replace-image.sh
+```
+
+### 3.3. Add configs to Configmap for Nonna
+
+`nonna` uses these configs in ConfigMap **config-ikukantai** in namespace **knative-serving**:
+
+| Config | Description | Value | Example |
+|-|-|-|-|
+| **ikukantai-enable-nonna** | enable/disable `nonna` | bool | "true", "false" |
+| **nonna-threads** | number of processing threads in `nonna` | integer | "10" |
+
+Example:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-ikukantai
+  namespace: knative-serving
+...
+data:
+  ...
+  ikukantai-enable-nonna: 'true'
+  nonna-threads: '10'
+  ...
+```
+
 ## 4. Development
+
+First, apply a demo application for `nonna` development:
+
+```bash
+$ kubectl apply -f config/hello.yaml
+```
+
+Make sure `nonna` is injected into the Pod:
+
+```bash
+$ kubectl get pod | grep hello
+hello-00001-deployment-598589db69-bhwhv                  2/2     Running   0              26m
+
+$ kubectl get pod hello-00001-deployment-598589db69-bhwhv -o yaml | grep image:
+    image: index.docker.io/bonavadeur/shuka@sha256:92b17a46559202b3584a3e9e1373914ed0e66bc55ba6d3a1353312dae25de79b
+    image: docker.io/bonavadeur/nonna:dev
+    image: docker.io/bonavadeur/nonna:dev
+    image: sha256:79054189220aa9f84fac527b4069f4ed17b6de4e6713d5d58ccfe06a17ea0dd6
+```
+
+Take a look in [build.sh](./build.sh). There are two options for building `nonna` image:
++ **ful**: build `nonna` image from source, fastly but large size of image
++ **push**: like **ful** options, but slower and smaller size of image because the compression level is increased and then image will be pushed to the registry
+
+```bash
+$ ./build.sh ful # faster but larger image size
+$ ./build.sh push # slower but smaller image size
+```
 
 ## 5. Author
 
