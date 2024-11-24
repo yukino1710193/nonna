@@ -85,6 +85,7 @@ func (q *ExtraQueue) Pop() *Packet {
 	<-q.Next // hangout until len of Queue > 0
 	q.queueLock.Lock()
 	popPacket := q.Queue[len(q.Queue)-1]
+	q.HeaderModifier(popPacket)
 	q.Queue = q.Queue[:len(q.Queue)-1]
 	q.queueLock.Unlock()
 
