@@ -1,5 +1,5 @@
 # FROM docker.io/library/alpine:3.20.3
-FROM docker.io/bonavadeur/ikukantai-queue-base:v0.1
+FROM docker.io/bonavadeur/ikukantai-queue-base:v1.0
 
 WORKDIR /
 
