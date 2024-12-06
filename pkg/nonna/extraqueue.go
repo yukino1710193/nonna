@@ -17,6 +17,7 @@ type ExtraQueue struct {
 	popLock         sync.Mutex
 	pushBridge      *hashi.Hashi
 	popBridge       *hashi.Hashi
+	headerModBridge *hashi.Hashi
 	MsgIDLock       sync.Mutex
 	MsgIDCount      uint32
 	sortLock        sync.Mutex
@@ -55,6 +56,15 @@ func NewExtraQueue() *ExtraQueue {
 		reflect.TypeOf(PopResponse{}),
 		newExtraQueue.PopResponseAdapter,
 	)
+	newExtraQueue.headerModBridge = hashi.NewHashi(
+		"HeaderModBridge",
+		hashi.HASHI_TYPE_SERVER,
+		BASE_PATH+"/header-mod-bridge",
+		bonalib.Cm2Int("nonna-threads"),
+		reflect.TypeOf(HeaderModRequest{}),
+		reflect.TypeOf(HeaderModResponse{}),
+		newExtraQueue.HeaderModResponseAdapter,
+	)
 
 	return newExtraQueue
 }
@@ -69,6 +79,12 @@ func (q *ExtraQueue) PopResponseAdapter(params ...interface{}) (interface{}, err
 	// _ = params[0].(*PopRequest)
 	popPacket := q.Pop()
 	return packet2PopResponse(popPacket), nil
+}
+
+func (q *ExtraQueue) HeaderModResponseAdapter(params ...interface{}) (interface{}, error) {
+	headerModRequest := params[0].(*HeaderModRequest)
+	modifiedPacket := q.HeaderModifier(headerModRequest2Packet(headerModRequest))
+	return packet2HeaderModResponse(modifiedPacket), nil
 }
 
 func (q *ExtraQueue) Push(pushPacket *PushRequest) {
@@ -90,6 +106,11 @@ func (q *ExtraQueue) Pop() *Packet {
 	q.queueLock.Unlock()
 
 	return popPacket
+}
+
+func (q *ExtraQueue) HeaderModifier(p *Packet) *Packet {
+	q.HeaderModifierAlgorithm(p)
+	return p
 }
 
 // custom this

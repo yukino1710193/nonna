@@ -46,3 +46,32 @@ message PopResponse {
     }
     repeated HeaderSchema Headers = 6;
 }
+
+// Queue-Proxy -> Nonna: HeaderModify Indicate
+message HeaderModRequest {
+    uint32 ID = 1;
+    string SourceIP = 2;
+    string Domain = 3;
+    string URI = 4;
+    string Method = 5;
+
+    message HeaderSchema {
+        string field = 1;
+        string value = 2;
+    }
+    repeated HeaderSchema Headers = 6;
+}
+
+message HeaderModResponse {
+    uint32 ID = 1;
+    string SourceIP = 2;
+    string Domain = 3;
+    string URI = 4;
+    string Method = 5;
+
+    message HeaderSchema {
+        string field = 1;
+        string value = 2;
+    }
+    repeated HeaderSchema Headers = 6;
+}
