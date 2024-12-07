@@ -26,10 +26,11 @@ type ExtraQueue struct {
 
 func NewExtraQueue() *ExtraQueue {
 	containerConcurrency := bonalib.Str2Int(os.Getenv("CONTAINER_CONCURRENCY"))
+	nonnaThreads := bonalib.Cm2Int("nonna-threads")
 
 	newExtraQueue := &ExtraQueue{
 		Queue:           make([]*Packet, 0),
-		Next:            make(chan bool, containerConcurrency),
+		Next:            make(chan bool, nonnaThreads),
 		NextQueueSize:   containerConcurrency,
 		NextQueueLength: 0,
 		popLock:         sync.Mutex{},
@@ -42,7 +43,7 @@ func NewExtraQueue() *ExtraQueue {
 		"PushBridge",
 		hashi.HASHI_TYPE_SERVER,
 		BASE_PATH+"/push-bridge",
-		bonalib.Cm2Int("nonna-threads"),
+		nonnaThreads,
 		reflect.TypeOf(PushRequest{}),
 		reflect.TypeOf(PushResponse{}),
 		newExtraQueue.PushResponseAdapter,
@@ -51,7 +52,7 @@ func NewExtraQueue() *ExtraQueue {
 		"PopBridge",
 		hashi.HASHI_TYPE_SERVER,
 		BASE_PATH+"/pop-bridge",
-		bonalib.Cm2Int("nonna-threads"),
+		nonnaThreads,
 		reflect.TypeOf(PopRequest{}),
 		reflect.TypeOf(PopResponse{}),
 		newExtraQueue.PopResponseAdapter,
@@ -60,7 +61,7 @@ func NewExtraQueue() *ExtraQueue {
 		"HeaderModBridge",
 		hashi.HASHI_TYPE_SERVER,
 		BASE_PATH+"/header-mod-bridge",
-		bonalib.Cm2Int("nonna-threads"),
+		nonnaThreads,
 		reflect.TypeOf(HeaderModRequest{}),
 		reflect.TypeOf(HeaderModResponse{}),
 		newExtraQueue.HeaderModResponseAdapter,
