@@ -111,6 +111,7 @@ func (q *ExtraQueue) Pop() *Packet {
 
 func (q *ExtraQueue) HeaderModifier(p *Packet) *Packet {
 	q.HeaderModifierAlgorithm(p)
+	bonalib.Log("HeaderModifier", p)
 	return p
 }
 
